@@ -28,6 +28,8 @@ flutter:
   generate: true
   assets:
     - assets/art/ledger-study.webp
+    - assets/fonts/Manrope-OFL.txt
+    - assets/fonts/NotoSansArabic-OFL.txt
   fonts:
     - family: Manrope
       fonts:
