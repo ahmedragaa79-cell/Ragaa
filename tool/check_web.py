@@ -20,7 +20,10 @@ class QuietHandler(SimpleHTTPRequestHandler):
 
 def enable_screen_reader(page):
     # Flutter deliberately keeps this accessibility control just off screen.
-    page.locator("flt-semantics-placeholder").first.dispatch_event("click")
+    page.locator("flt-semantics-placeholder, flt-semantics").first.wait_for(state="attached")
+    placeholder = page.locator("flt-semantics-placeholder")
+    if placeholder.count():
+        placeholder.first.dispatch_event("click")
 
 
 def activate_choice(page, name):

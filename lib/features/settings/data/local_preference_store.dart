@@ -15,8 +15,9 @@ final class LocalPreferenceStore implements PreferenceStore {
     final raw = await _store.getString(_key);
     if (raw == null) return const WorkspacePreferences();
     final data = jsonDecode(raw);
-    if (data is! Map<String, dynamic>)
+    if (data is! Map<String, dynamic>) {
       throw const FormatException('Invalid preferences');
+    }
     return WorkspacePreferences.decode(
       data['locale'] is String ? data['locale'] as String : null,
       data['theme'] is String ? data['theme'] as String : null,

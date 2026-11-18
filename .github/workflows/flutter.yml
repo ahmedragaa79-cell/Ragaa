@@ -8,7 +8,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: flutter-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 env:
   FLUTTER_VERSION: '3.50.0'
@@ -41,6 +41,7 @@ jobs:
           "$RUNNER_TEMP/web-check/bin/pip" -q install playwright==1.65.2
           .github/scripts/check "$RUNNER_TEMP/web-check/bin/python" tool/check_web.py
   native:
+    needs: verify
     name: Build ${{ matrix.target }}
     if: github.event_name != 'push'
     strategy:
