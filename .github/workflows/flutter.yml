@@ -46,6 +46,7 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/web-check"
           "$RUNNER_TEMP/web-check/bin/pip" -q install playwright==1.65.2
           .github/scripts/check "$RUNNER_TEMP/web-check/bin/python" tool/check_web.py
+          .github/scripts/check "$RUNNER_TEMP/web-check/bin/python" tool/check_web.py --opfs
   native:
     name: Build ${{ matrix.target }}
     if: github.event_name != 'push'
@@ -63,7 +64,9 @@ jobs:
             os: windows-latest
             args: windows --debug
           - target: macOS and iOS Simulator
-            os: macos-latest
+            # Standard x64 host with Xcode and simulator SDK; avoids the
+            # documented hosted arm64 capacity queue. Not a larger runner.
+            os: macos-26-intel
             args: macos --debug
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30

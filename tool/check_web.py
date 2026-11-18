@@ -1,5 +1,6 @@
 """Drive the packaged release in real Chrome, using only a disposable profile."""
 
+from argparse import ArgumentParser
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from os import environ
@@ -14,6 +15,13 @@ from playwright.sync_api import expect, sync_playwright
 class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
+
+
+class IsolatedHandler(QuietHandler):
+    def end_headers(self):
+        self.send_header('Cross-Origin-Opener-Policy', 'same-origin')
+        self.send_header('Cross-Origin-Embedder-Policy', 'require-corp')
+        super().end_headers()
 
 
 def enable_screen_reader(page):
@@ -76,7 +84,7 @@ def check_preferences(page, origin):
     passed('Settings deep link, live locale/theme, stored preferences and reload.')
 
 
-def check_directory(page, origin):
+def check_directory(page, origin, require_opfs):
     page.goto(origin + '/#/outlets')
     enable_screen_reader(page)
     expect(semantic(page, 'No outlets yet')).to_be_visible(timeout=30000)
@@ -86,6 +94,8 @@ def check_directory(page, origin):
     activate(page, 'Save outlet')
     expect(semantic(page, 'QA-17')).to_be_visible()
     stored = browser_store(page)
+    if require_opfs:
+        assert page.evaluate('crossOriginIsolated') and stored.startswith('OPFS:'), stored
     page.reload()
     enable_screen_reader(page)
     expect(semantic(page, 'QA-17')).to_be_visible(timeout=30000)
@@ -95,13 +105,17 @@ def check_directory(page, origin):
 
 
 def main():
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument('--opfs', action='store_true', help='Serve isolation headers and require real OPFS storage.')
+    opfs = parser.parse_args().opfs
+    handler = IsolatedHandler if opfs else QuietHandler
     root = Path(__file__).resolve().parents[1] / 'build' / 'web'
     if not (root / 'strata-sw.js').is_file():
         raise SystemExit('Build the web release and run tool/prepare_offline_web.py first.')
     chrome = which('google-chrome') or which('chromium')
     if not chrome:
         raise SystemExit('Install Chrome or Chromium first.')
-    with ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietHandler, directory=root)) as server, TemporaryDirectory(prefix='strata-chrome-') as profile:
+    with ThreadingHTTPServer(('127.0.0.1', 0), partial(handler, directory=root)) as server, TemporaryDirectory(prefix='strata-chrome-') as profile:
         Thread(target=server.serve_forever, daemon=True).start()
         origin = f'http://127.0.0.1:{server.server_port}'
         try:
@@ -115,8 +129,9 @@ def main():
                     page.set_default_timeout(25000)
                     try:
                         if not restart:
-                            check_preferences(page, origin)
-                            check_directory(page, origin)
+                            if not opfs:
+                                check_preferences(page, origin)
+                            check_directory(page, origin, opfs)
                         else:
                             # No running app/worker from the first process, and no network.
                             context.set_offline(True)
@@ -130,7 +145,7 @@ def main():
                             page.reload()
                             enable_screen_reader(page)
                             expect(semantic(page, 'Saved while offline')).to_be_visible(timeout=30000)
-                            passed('Chrome process restart, offline launch, offline edit and offline reload.')
+                            passed(('Isolated' if opfs else 'Standard') + ' hosting: Chrome process restart, offline launch, edit and reload.')
                     except Exception:
                         print(page.locator('body').aria_snapshot()[:4500], flush=True)
                         raise
