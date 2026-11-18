@@ -52,7 +52,6 @@ class WorkspacePage extends StatelessWidget {
         ],
       );
       return SingleChildScrollView(
-        key: PageStorageKey(title),
         padding: EdgeInsets.symmetric(
           horizontal: compact ? 18 : 30,
           vertical: compact ? 21 : 27,

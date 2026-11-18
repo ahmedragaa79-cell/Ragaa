@@ -1,31 +1,34 @@
-import 'package:material_ui/material_ui.dart';
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../application/workspace_preferences.dart';
 
-/// Preferences only. Never use this key-value store for business records.
+/// One versioned document for the small device preferences. A successful
+/// write saves both choices together. This is never the business database.
 final class LocalPreferenceStore implements PreferenceStore {
-  static const _language = 'strata.preferences.language.v1';
-  static const _appearance = 'strata.preferences.appearance.v1';
-
-  // Lazily initialize so a missing platform implementation can be handled by
-  // the same error boundary as a failed read or write.
+  static const _key = 'strata.preferences.v1';
   late final _store = SharedPreferencesAsync();
 
   @override
   Future<WorkspacePreferences> load() async {
-    final data = await _store.getAll(allowList: {_language, _appearance});
+    final raw = await _store.getString(_key);
+    if (raw == null) return const WorkspacePreferences();
+    final data = jsonDecode(raw);
+    if (data is! Map<String, dynamic>)
+      throw const FormatException('Invalid preferences');
     return WorkspacePreferences.decode(
-      data[_language] is String ? data[_language] as String : null,
-      data[_appearance] is String ? data[_appearance] as String : null,
+      data['locale'] is String ? data['locale'] as String : null,
+      data['theme'] is String ? data['theme'] as String : null,
     );
   }
 
   @override
-  Future<void> saveLocale(Locale locale) =>
-      _store.setString(_language, locale.languageCode);
-
-  @override
-  Future<void> saveTheme(ThemeMode theme) =>
-      _store.setString(_appearance, theme.name);
+  Future<void> save(WorkspacePreferences values) => _store.setString(
+    _key,
+    jsonEncode({
+      'locale': values.locale?.languageCode,
+      'theme': values.themeMode.name,
+    }),
+  );
 }

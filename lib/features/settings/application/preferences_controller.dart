@@ -37,31 +37,26 @@ class PreferencesController extends Notifier<PreferenceSnapshot> {
   @override
   PreferenceSnapshot build() => ref.watch(initialPreferencesProvider);
 
-  Future<void> setLocale(Locale locale) {
-    final store = ref.read(preferenceStoreProvider);
-    return _update(
-      state.values.withLocale(locale),
-      () => store.saveLocale(locale),
-    );
-  }
+  Future<void> setLocale(Locale locale) =>
+      _update(state.values.withLocale(locale));
 
-  Future<void> setTheme(ThemeMode theme) {
-    final store = ref.read(preferenceStoreProvider);
-    return _update(state.values.withTheme(theme), () => store.saveTheme(theme));
-  }
+  Future<void> setTheme(ThemeMode theme) =>
+      _update(state.values.withTheme(theme));
 
-  Future<void> _update(
-    WorkspacePreferences values,
-    Future<void> Function() persist,
-  ) {
-    // Apply immediately; serialize writes so quick successive choices restore
-    // in the same order after restart. Keep the session usable on failure.
+  Future<void> _update(WorkspacePreferences values) {
+    final store = ref.read(preferenceStoreProvider);
+    // Apply immediately; serialize whole snapshots so the last choice wins,
+    // even after a transient storage failure or rapid successive changes.
     state = (values: values, storageWarning: state.storageWarning);
     _writes = _writes.then((_) async {
+      var failed = false;
       try {
-        await persist();
+        await store.save(values);
       } catch (_) {
-        if (ref.mounted) state = (values: state.values, storageWarning: true);
+        failed = true;
+      }
+      if (ref.mounted && state.storageWarning != failed) {
+        state = (values: state.values, storageWarning: failed);
       }
     });
     return _writes;

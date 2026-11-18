@@ -32,6 +32,5 @@ final class WorkspacePreferences {
 
 abstract interface class PreferenceStore {
   Future<WorkspacePreferences> load();
-  Future<void> saveLocale(Locale locale);
-  Future<void> saveTheme(ThemeMode theme);
+  Future<void> save(WorkspacePreferences values);
 }

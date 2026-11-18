@@ -30,18 +30,10 @@ class RevenueSummary extends StatelessWidget {
                 child: FractionallySizedBox(
                   widthFactor: .48,
                   heightFactor: .97,
-                  child: ShaderMask(
-                    blendMode: BlendMode.dstIn,
-                    shaderCallback: (rect) => const RadialGradient(
-                      radius: .75,
-                      colors: [Colors.white, Colors.white, Colors.transparent],
-                      stops: [0, .6, 1],
-                    ).createShader(rect),
-                    child: Image.asset(
-                      'assets/art/ledger-study.webp',
-                      fit: BoxFit.contain,
-                      excludeFromSemantics: true,
-                    ),
+                  child: Image.asset(
+                    'assets/art/ledger-study.webp',
+                    fit: BoxFit.contain,
+                    excludeFromSemantics: true,
                   ),
                 ),
               ),

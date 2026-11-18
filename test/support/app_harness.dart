@@ -18,15 +18,9 @@ class MemoryPreferenceStore implements PreferenceStore {
   }
 
   @override
-  Future<void> saveLocale(Locale locale) async {
+  Future<void> save(WorkspacePreferences values) async {
     if (rejectWrites) throw StateError('write failed');
-    saved = saved.withLocale(locale);
-  }
-
-  @override
-  Future<void> saveTheme(ThemeMode theme) async {
-    if (rejectWrites) throw StateError('write failed');
-    saved = saved.withTheme(theme);
+    saved = values;
   }
 }
 

@@ -96,6 +96,10 @@ void main() {
       expect(find.textContaining('تعذّر الوصول'), findsOneWidget);
       expect(find.text('لغة العرض'), findsOneWidget);
       expect(store.saved.locale, isNull);
+      store.rejectWrites = false;
+      await tapKey(tester, 'theme-light');
+      expect(find.textContaining('تعذّر الوصول'), findsNothing);
+      expect(store.saved.locale, const Locale('ar'));
       expect(tester.takeException(), isNull);
     },
   );
