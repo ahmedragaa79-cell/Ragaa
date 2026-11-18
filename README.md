@@ -3,11 +3,9 @@ Roads map
 
 ## Strata · Outlets Revenue Management System
 
-Strata is a Flutter application shell for managing outlet collections in two shifts per day. It opens with an **empty workspace**, not demonstration transactions. Dashboard, Outlets, Revenue entry, Reports, and Settings have real routes. Language and appearance preferences work today; recording money and generating reports do not.
+Strata manages collection outlets on a **single device**, online or offline. The directory starts empty. Add an outlet by code and name, search it, edit it, or change its status without losing its history. The dashboard follows the real total, active and inactive counts. Revenue recording, monetary totals and reports are not available yet. English/Arabic and light/dark preferences apply immediately.
 
-![English dashboard with an empty revenue summary, outlet snapshot and module navigation](docs/previews/dashboard-en.png)
-
-[Arabic dark-mode preview](docs/previews/dashboard-ar.png) · [Architecture and open decisions](docs/architecture.md) · [Initialization report](docs/initialization.md)
+[Storage, migrations, platform locations & recovery](docs/local-storage.md) · [Architecture](docs/architecture.md) · [Historical Phase 1 inspection and renders](docs/initialization.md)
 
 ### Run from a clean checkout
 
@@ -25,10 +23,11 @@ For a local web release with the renderer served alongside the application:
 
 ```sh
 flutter build web --release --no-web-resources-cdn
+python3 tool/prepare_offline_web.py
 python3 -m http.server 8080 --directory build/web
 ```
 
-Open the server over HTTP, not `file://`. The default hash URLs (`/#/outlets`, `/#/revenue`, `/#/reports`, `/#/settings`) work on a static host without rewrite rules. Fonts and dashboard artwork are bundled, not fetched by application code. A self-contained renderer is **not** a promise of offline business-data synchronization.
+Use HTTPS (or loopback HTTP), not `file://`. Hash routes such as `/#/outlets` work without rewrites. The packaged release includes the engine, fonts, SQLite Wasm/worker and an offline service worker. Complete the first install online. Return to the **same origin and browser profile**; clearing site data can erase the directory. See the [browser storage contract](docs/local-storage.md#offline-browser-delivery).
 
 ### Host requirements
 
@@ -53,16 +52,18 @@ lib/
     router/                      # destinations and persistent shell route
     theme/                       # light/dark palettes, typography, accent roles
     localization/                # ARB catalogs, generated delegates, formatters
+  core/database/                 # versioned Drift schema, native/web openers
   core/widgets/                  # shared surface and type primitives
   features/
-    dashboard/{application,presentation}/
-    outlets/presentation/
+    dashboard/presentation/
+    outlets/{domain,application,data,presentation}/
     revenue/presentation/
     reports/presentation/
     settings/{application,data,presentation}/
   shared/
     domain/                      # ledger entities, queries, read contract
-    data/                        # empty adapter and dependency injection
+    application/                 # reactive workspace counts
+    data/                        # shared database/repository injection
     presentation/                # sidebar/drawer, toolbar, common page layout
 android/ ios/ linux/ macos/ web/ windows/    # real Flutter platform hosts
 assets/                          # local typefaces + OFL licenses, brand, artwork
@@ -75,17 +76,18 @@ docs/                            # architecture, verification and rendered previ
 ```sh
 flutter pub get --enforce-lockfile
 flutter gen-l10n
+dart run build_runner build --delete-conflicting-outputs
 dart format lib test
 flutter analyze
 flutter test
 ```
 
-To refresh the *actual widget renders* used in this README (not design mockups), run `flutter test --update-goldens test/previews/render_workspace.dart`. These two captures are opt-in; they do not make every host match identical font rasterization.
+Native tests use memory databases, temporary SQLite files and independent connections. The widget suite includes desktop and compact layouts, validation/cancel, all four empty states, both directions/themes, live counts and storage failure/retry. No test opens a real user directory. The original dashboard renders in `docs/previews/` are Phase 1 history, not current balances.
 
 ### Extend the shell
 
 - Add user-facing text to **both** `lib/app/localization/app_en.arb` and `app_ar.arb`, then run `flutter gen-l10n`. Use `context.l10n`, `context.formats` and directional alignment/padding in widgets. Never edit generated translations.
 - Put workflow logic in its feature, not in a navigation widget. Only move concepts into `shared/domain` when more than one module needs them.
-- Replace `workspaceReaderProvider` with a real adapter only after agreeing on offline behavior, currency and synchronization. Preferences storage is not a ledger.
+- Keep revenue additions behind their own domain/repository contract. The shared overview currently projects only real outlet counts. Preferences storage is not a ledger.
 
-CI also smoke-tests the **built release** in Chrome: it follows a Settings deep link, changes language and theme, reloads, and verifies persistent choices. To repeat after building web with local renderer assets, install Python `playwright==1.65.2` in a disposable virtual environment and run `python tool/check_web.py` with Chrome on `PATH`. No Playwright dependency is included in the Flutter application.
+CI checks lockfile resolution, generated Drift bindings, locale generation, SDK formatting, analysis, tests and per-host builds. The **packaged Chrome release** test restarts a disposable browser profile and edits an outlet offline. To repeat after the web build/packaging steps above, install `playwright==1.65.2` in a temporary Python environment and run `python tool/check_web.py` with Chrome on `PATH`. No Playwright dependency ships in the Flutter application.

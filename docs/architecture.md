@@ -13,30 +13,19 @@ At 980 logical pixels the shell uses a persistent directional sidebar; below tha
 - Manrope and Noto Sans Arabic are bundled with their SIL Open Font Licenses. There is no runtime web-font dependency. Shell strings, empty states, tooltips, preference labels and error messages all come from the catalogs.
 - `SharedPreferencesAsync` stores **only** a versioned locale/theme document on the current device/browser origin. The controller applies a choice immediately and serializes saves. Failed reads fall back to defaults; failed writes keep the selected session values and show a localized warning. A later successful snapshot saves both choices and clears the warning. This is not an account profile, credential vault or financial database.
 
-## Ledger boundary, without choosing a database
+## Single-device collection directory
 
 ```text
-Dashboard presentation → overviewProvider → WorkspaceReader
-                                                  ↑
-                                       EmptyWorkspaceReader
+Routes /outlets and /
+  → Riverpod directory query / shared reactive overview
+  → OutletRepository (mutations, watched filtered directory) / WorkspaceReader (counts)
+  → SqliteOutletRepository → StrataDatabase → native file or durable browser VFS
 ```
 
-`WorkspaceReader` exposes outlet listing, filtered revenue history and a dashboard projection. Only the overview is consumed in the shell. Reading an aggregate projection will not require loading an entire ledger into memory. Loading and failure states are distinct from a successful, empty result. The default adapter returns empty immutable lists and zero totals. It contains no write methods or sample business records.
+- `features/outlets/domain` defines normalized input, typed validation errors, a status filter and repository contract. The immutable outlet entity and count projection are shared. No SQL, generated database classes or platform paths are exposed as presentation state.
+- `shared/data/workspace_providers.dart` is the composition root for business storage: injectable connection factory, async initialization, repository lifetime and the read-only overview interface. Preferences still restore independently, so storage problems do not prevent access to Settings or a retry.
+- `core/database` owns the generated Drift schema, explicit migration and conditional connection openers. `features/outlets/data` maps rows to domain entities and translates database uniqueness errors. Create, edit and status changes update watched queries; there is no `invalidate dashboard after save` convention to remember.
+- The directory search/status controller lives outside locale/theme widgets. Editors own only outstanding text, progress and feedback. A confirmed status action writes only the flag and timestamp; no destructive delete or cascading history rewrite.
+- `BusinessDay`, `RevenueKey`, `RevenueShift`, `LedgerAmount` and `RevenueQuery` in `shared/domain/revenue.dart` remain design primitives, not a pretend ledger. Revenue workflows and exports remain placeholders, and the dashboard explicitly says the revenue total is not available.
 
-- **Outlet:** stable ID, display name and active flag. Historical revenue can reference a stable outlet identity regardless of future name/status changes.
-- **RevenueRecord:** stable record ID; natural key of `(outletId, BusinessDay, RevenueShift)`; scaled integer amount; optional future recorder ID. A `BusinessDay` compares calendar components without converting the supplied day across time zones. Both shifts are explicitly modeled; no morning/evening times have been invented.
-- **LedgerAmount:** integer units and explicit precision, not a stored `double`. The empty dashboard's `0.00` is a display convention, not a mandated currency or two-decimal validation rule. Formatting splits integer and fractional parts without binary floating-point division. Confirm valid ranges (including JavaScript's safe integer range) before accepting monetary input.
-- **RevenueQuery:** immutable outlet selection and optional inclusive day bounds. Empty selection means all outlets; reversed ranges are rejected. A database adapter can translate this into indexed queries later.
-
-The natural key **describes** duplicate prevention; it is not yet an implemented database constraint. No records can be created in this release. When writes are introduced, require transactional uniqueness in the adapter as well as user feedback in the entry form. Don't rely on a preliminary read or a disabled save button alone.
-
-## Before the first real write
-
-| Decision to confirm | Why it matters |
-| --- | --- |
-| Single device, offline-first, or shared online workspace? Which hosts must retain data offline? | Determines storage/encryption, migration, backup and recovery requirements. |
-| Which currency, precision, accepted ranges and rounding rules apply? | Determines input validation and which totals can be aggregated. |
-| What defines a business day and when can a closed shift be corrected? | Determines the calendar key and correction/audit behavior. |
-| How are users and outlets identified across devices? What happens when offline edits conflict? | Determines the eventual sync protocol, write revisions and conflict handling. |
-
-**Next slice:** agree on these constraints, select a persistence adapter in an architecture decision record, and implement outlet create/edit/activate/deactivate with repository contract tests. Revenue writes, reconciliation, reports, PDF/XLSX export and user management remain separate future tasks.
+See [local storage](local-storage.md) for schema, platform paths, offline deployment, migration/recovery policy, exact future revenue uniqueness and the proposed manual backup process. Before the revenue phase, confirm currency/scale and accepted ranges, business-day rules and correction policy; do not introduce multi-device identities or synchronization into this single-device workflow.

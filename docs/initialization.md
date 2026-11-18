@@ -1,5 +1,7 @@
 # Initialization report · Strata
 
+> Historical Phase 1 snapshot. For the current directory and database, see [local storage](local-storage.md).
+
 The repository previously contained only `README.md` (`# Ragaa` / `Roads map`). No Flutter project, configuration, dependencies or existing application behavior was replaced. The original README text is retained.
 
 ## Review scope
