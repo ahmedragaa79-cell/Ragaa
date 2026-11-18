@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Keep the full build log and surface a short failure in the PR's Checks tab.
+set -u -o pipefail
+log=$(mktemp)
+trap 'rm -f "$log"' EXIT
+"$@" 2>&1 | tee "$log"
+status=${PIPESTATUS[0]}
+if (( status != 0 )); then
+  tail=$(tail -c 4200 "$log")
+  tail=${tail//'%'/'%25'}
+  tail=${tail//$'\r'/'%0D'}
+  tail=${tail//$'\n'/'%0A'}
+  echo "::error::$tail"
+fi
+exit "$status"

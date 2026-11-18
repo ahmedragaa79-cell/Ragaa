@@ -1,39 +1,78 @@
 name: Flutter checks
 on:
   push:
-    branches: [arena/868c7ad2-ragaa]
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: flutter-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  FLUTTER_VERSION: '3.50.0'
 jobs:
-  capture:
-    name: Capture review images and apply SDK formatting
+  verify:
+    name: Analysis, tests and web release
     runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-    timeout-minutes: 12
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: '3.50.0'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
       - run: flutter pub get --enforce-lockfile
       - run: flutter gen-l10n
-      - run: dart format lib test
-      - run: flutter test --no-pub --reporter=github --update-goldens test/previews/render_workspace.dart
-      - name: Save only review images and formatted sources
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add lib test docs/previews/
-          git commit -m 'style: apply SDK formatting and capture both localized dashboards'
-          git push origin HEAD:arena/868c7ad2-ragaa
+      - run: dart format --output=none --set-exit-if-changed lib test
+      - run: .github/scripts/check flutter analyze --no-pub
       - run: flutter test --no-pub --reporter=github
-      - run: flutter test --no-pub --reporter=github --platform chrome test/browser_preferences_test.dart
-      - run: flutter build web --release --no-pub --no-web-resources-cdn
+      - run: .github/scripts/check flutter build web --release --no-pub --no-web-resources-cdn
       - uses: actions/upload-artifact@v7
         with:
           name: strata-web
           path: build/web/
           retention-days: 7
+      - name: Verify real browser preferences and reload
+        run: |
+          python3 -m venv "$RUNNER_TEMP/web-check"
+          "$RUNNER_TEMP/web-check/bin/pip" -q install playwright==1.65.2
+          .github/scripts/check "$RUNNER_TEMP/web-check/bin/python" tool/check_web.py
+  native:
+    name: Build ${{ matrix.target }}
+    if: github.event_name != 'push'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: Android
+            os: ubuntu-24.04
+            args: apk --debug
+          - target: Linux
+            os: ubuntu-24.04
+            args: linux --debug
+          - target: Windows
+            os: windows-latest
+            args: windows --debug
+          - target: macOS and iOS Simulator
+            os: macos-latest
+            args: macos --debug
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - name: Install Linux desktop headers
+        if: matrix.target == 'Linux'
+        run: sudo apt-get update -qq && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libstdc++-12-dev
+      - run: flutter pub get --enforce-lockfile
+      - run: .github/scripts/check flutter build ${{ matrix.args }} --no-pub
+        shell: bash
+      - if: runner.os == 'macOS'
+        run: .github/scripts/check flutter build ios --simulator --debug --no-pub
