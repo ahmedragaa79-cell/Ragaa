@@ -156,42 +156,39 @@ void main() {
     expect((await repo.watchDirectory(active).first).single.id, id);
     expect(await repo.watchDirectory(inactive).first, isEmpty);
   });
-  test(
-    'dashboard provider emits committed total/active/inactive counts without refresh',
-    () async {
-      final container = ProviderContainer.test(
-        overrides: [outletRepositoryProvider.overrideWith((ref) => repo)],
-      );
-      final changes = StreamController<(int, int, int)>();
-      final subscription = container.listen(overviewProvider, (_, next) {
-        if (next.asData case final data?) {
-          final o = data.value;
-          changes.add((o.totalOutlets, o.activeOutlets, o.inactiveOutlets));
-        }
-      });
-      final iterator = StreamIterator(changes.stream);
-      Future<void> next((int, int, int) expected) async {
-        expect(await iterator.moveNext(), true);
-        expect(iterator.current, expected);
+  test('dashboard provider emits committed total/active/inactive counts without refresh', () async {
+    final container = ProviderContainer.test(
+      overrides: [outletRepositoryProvider.overrideWith((ref) => repo)],
+    );
+    final changes = StreamController<(int, int, int)>();
+    final subscription = container.listen(overviewProvider, (_, next) {
+      if (next.asData case final data?) {
+        final o = data.value;
+        changes.add((o.totalOutlets, o.activeOutlets, o.inactiveOutlets));
       }
+    });
+    final iterator = StreamIterator(changes.stream);
+    Future<void> next((int, int, int) expected) async {
+      expect(await iterator.moveNext(), true);
+      expect(iterator.current, expected);
+    }
 
-      try {
-        await next((0, 0, 0));
-        final id = await repo.create(details('A', 'One'));
-        await next((1, 1, 0));
-        await repo.create(details('B', 'Two'));
-        await next((2, 2, 0));
-        await repo.setActive(id, false);
-        await next((2, 1, 1));
-        await repo.setActive(id, true);
-        await next((2, 2, 0));
-      } finally {
-        subscription.close();
-        await iterator.cancel();
-        await changes.close();
-      }
-    },
-  );
+    try {
+      await next((0, 0, 0));
+      final id = await repo.create(details('A', 'One'));
+      await next((1, 1, 0));
+      await repo.create(details('B', 'Two'));
+      await next((2, 2, 0));
+      await repo.setActive(id, false);
+      await next((2, 1, 1));
+      await repo.setActive(id, true);
+      await next((2, 2, 0));
+    } finally {
+      subscription.close();
+      await iterator.cancel();
+      await changes.close();
+    }
+  });
 
   group('disposable on-disk storage', () {
     late Directory temp;
