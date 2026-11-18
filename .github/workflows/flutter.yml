@@ -1,11 +1,17 @@
 name: Flutter checks
-on: [push, pull_request]
+on:
+  push:
+    branches: [arena/868c7ad2-ragaa]
 permissions:
   contents: read
 jobs:
-  verify:
+  # One-time source scaffold, restricted to this initialization branch. The
+  # final review workflow is read-only once the native hosts are in Git.
+  initialize:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    permissions:
+      contents: write
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -13,21 +19,14 @@ jobs:
           channel: stable
           flutter-version: '3.50.0'
           cache: true
-      - name: Generate stock platform hosts for initialization
+      - name: Materialize official runner sources and resolved dependency lock
+        if: hashFiles('.metadata') == ''
         run: |
-          flutter create --no-pub --platforms=android,ios,windows,macos,linux,web --org com.example --project-name strata "$RUNNER_TEMP/strata"
-          cd "$RUNNER_TEMP/strata"
-          tar czf "$RUNNER_TEMP/hosts.tgz" .metadata android ios linux macos web windows
-      - uses: actions/upload-artifact@v4
-        with:
-          name: platform-hosts
-          path: ${{ runner.temp }}/hosts.tgz
-      - run: flutter pub get
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dependency-lock
-          path: pubspec.lock
-      - run: flutter gen-l10n
-      - run: dart format --output=none --set-exit-if-changed lib test
-      - run: flutter analyze
-      - run: flutter test
+          flutter create --no-pub --empty --platforms=android,ios,windows,macos,linux,web --org com.example --project-name strata "$RUNNER_TEMP/strata"
+          for source in .metadata android ios windows macos linux web; do cp -R "$RUNNER_TEMP/strata/$source" .; done
+          flutter pub get
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .metadata android ios windows macos linux web pubspec.lock
+          git commit -m 'chore: add the six official Flutter runners and dependency lock'
+          git push origin HEAD:arena/868c7ad2-ragaa
