@@ -1,4 +1,4 @@
-name: Prepare SQLite schema
+name: Verify outlet implementation
 on:
   push:
     branches: [arena/868c7ad2-ragaa]
@@ -17,14 +17,17 @@ jobs:
           channel: stable
           flutter-version: '3.50.0'
           cache: true
-      - run: .github/scripts/check flutter pub get
-      - run: .github/scripts/check dart run build_runner build --delete-conflicting-outputs
-      - run: .github/scripts/check tool/fetch_sqlite_web.sh
-      - run: dart format lib/core/database
-      - name: Version generated schema, lock and offline runtime
+      - run: .github/scripts/check flutter pub get --enforce-lockfile
+      - run: flutter gen-l10n
+      - run: dart format lib test
+      - name: Save official SDK formatting
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add pubspec.lock lib/core/database web/sqlite linux/flutter macos/Flutter windows/flutter
-          git commit -m 'build: lock database dependencies and vendor verified offline SQLite runtime'
-          git push origin HEAD:arena/868c7ad2-ragaa
+          git add lib test linux/flutter macos/Flutter windows/flutter
+          if ! git diff --cached --quiet; then git commit -m 'style: apply SDK formatting to outlet module and tests' && git push origin HEAD:arena/868c7ad2-ragaa; fi
+      - run: .github/scripts/check flutter analyze --no-pub
+      - if: always() && !cancelled()
+        run: .github/scripts/check flutter test --no-pub --reporter=expanded
+      - if: always() && !cancelled()
+        run: .github/scripts/check flutter build web --release --no-pub --no-web-resources-cdn
