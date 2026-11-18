@@ -20,8 +20,9 @@ final outletRepositoryProvider = FutureProvider<OutletRepository>((ref) async {
     await db.initialize();
   } on SqliteException catch (error) {
     // SQLITE_CORRUPT / SQLITE_NOTADB. Never show paths, SQL, or stored values.
-    if (error.resultCode == 11 || error.resultCode == 26)
+    if (error.resultCode == 11 || error.resultCode == 26) {
       throw StorageProblem.corrupt;
+    }
     rethrow;
   }
   return SqliteOutletRepository(db);

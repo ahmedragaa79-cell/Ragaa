@@ -54,6 +54,7 @@ Future<void> changeOutletStatus(
   } catch (_) {
     message = l.outletWriteFailed;
   }
-  if (messenger.mounted)
+  if (messenger.mounted) {
     messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
 }

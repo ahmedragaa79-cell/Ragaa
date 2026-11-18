@@ -16,6 +16,7 @@ class EmptyDirectory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final titleStyle = Theme.of(context).textTheme.titleMedium;
     final (title, hint, icon) = switch ((
       total,
       query.search.trim(),
@@ -49,8 +50,7 @@ class EmptyDirectory extends StatelessWidget {
             liveRegion: true,
             child: Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w700),
+              style: titleStyle?.copyWith(fontWeight: FontWeight.w700),
             ),
           ),
           const SizedBox(height: 4),
@@ -65,11 +65,11 @@ class EmptyDirectory extends StatelessWidget {
   }
 }
 
-class DirectoryList extends ConsumerWidget {
+class DirectoryList extends StatelessWidget {
   const DirectoryList(this.outlets, {super.key});
   final List<Outlet> outlets;
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l = context.l10n;
     return LayoutBuilder(
       builder: (context, size) {
@@ -95,131 +95,126 @@ class DirectoryList extends ConsumerWidget {
                 ),
               ),
             for (final outlet in outlets) ...[
-              Builder(
-                key: ValueKey(outlet.id),
-                builder: (context) {
-                  final profile = Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        outlet.name,
-                        style: const TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                      if (outlet.description case final d?)
-                        Text(
-                          d,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: context.colors.onSurfaceVariant,
-                          ),
-                        ),
-                    ],
-                  );
-                  final code = Text(
-                    outlet.outletCode,
-                    style: TextStyle(
-                      color: context.colors.primary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                    ),
-                  );
-                  final active = outlet.isActive,
-                      accent = active ? Accent.teal : Accent.violet;
-                  final status = Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: accent.background(context),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 5,
-                          horizontal: 9,
-                        ),
-                        child: Text(
-                          active ? l.active : l.inactive,
-                          style: TextStyle(
-                            color: accent.foreground(context),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                  final date = context.formats.date(outlet.createdAt.toLocal());
-                  final actions = Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        key: ValueKey('edit-${outlet.id}'),
-                        tooltip: l.editOutlet,
-                        icon: const Icon(Icons.edit_outlined),
-                        onPressed: () => editOutlet(context, outlet),
-                      ),
-                      IconButton(
-                        key: ValueKey('status-${outlet.id}'),
-                        tooltip: active ? l.deactivateOutlet : l.activateOutlet,
-                        icon: Icon(
-                          active
-                              ? Icons.pause_circle_outline
-                              : Icons.play_circle_outline,
-                        ),
-                        onPressed: () =>
-                            changeOutletStatus(context, ref, outlet),
-                      ),
-                    ],
-                  );
-                  if (wide)
-                    return _Columns(
-                      code: code,
-                      profile: profile,
-                      status: status,
-                      created: Text(date, style: const TextStyle(fontSize: 12)),
-                      actions: actions,
-                    );
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 6,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(child: code),
-                            const SizedBox(width: 6),
-                            status,
-                          ],
-                        ),
-                        profile,
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                '${l.createdLabel}\n$date',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: context.colors.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                            actions,
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+              _OutletRow(key: ValueKey(outlet.id), outlet: outlet, wide: wide),
               const Divider(height: 1),
             ],
           ],
         );
       },
+    );
+  }
+}
+
+class _OutletRow extends ConsumerWidget {
+  const _OutletRow({super.key, required this.outlet, required this.wide});
+  final Outlet outlet;
+  final bool wide;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final profile = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(outlet.name, style: const TextStyle(fontWeight: FontWeight.w800)),
+        if (outlet.description case final d?)
+          Text(
+            d,
+            style: TextStyle(
+              fontSize: 12,
+              color: context.colors.onSurfaceVariant,
+            ),
+          ),
+      ],
+    );
+    final code = Text(
+      outlet.outletCode,
+      style: TextStyle(
+        color: context.colors.primary,
+        fontWeight: FontWeight.w700,
+        fontSize: 13,
+      ),
+    );
+    final active = outlet.isActive,
+        accent = active ? Accent.teal : Accent.violet;
+    final status = Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: accent.background(context),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 9),
+          child: Text(
+            active ? l.active : l.inactive,
+            style: TextStyle(
+              color: accent.foreground(context),
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
+    final date = context.formats.date(outlet.createdAt.toLocal());
+    final actions = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          key: ValueKey('edit-${outlet.id}'),
+          tooltip: l.editOutlet,
+          icon: const Icon(Icons.edit_outlined),
+          onPressed: () => editOutlet(context, outlet),
+        ),
+        IconButton(
+          key: ValueKey('status-${outlet.id}'),
+          tooltip: active ? l.deactivateOutlet : l.activateOutlet,
+          icon: Icon(
+            active ? Icons.pause_circle_outline : Icons.play_circle_outline,
+          ),
+          onPressed: () => changeOutletStatus(context, ref, outlet),
+        ),
+      ],
+    );
+    if (wide) {
+      return _Columns(
+        code: code,
+        profile: profile,
+        status: status,
+        created: Text(date, style: const TextStyle(fontSize: 12)),
+        actions: actions,
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 6,
+        children: [
+          Row(
+            children: [
+              Expanded(child: code),
+              const SizedBox(width: 6),
+              status,
+            ],
+          ),
+          profile,
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${l.createdLabel}\n$date',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              actions,
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

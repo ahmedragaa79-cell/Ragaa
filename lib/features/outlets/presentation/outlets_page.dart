@@ -55,7 +55,7 @@ class _OutletsPageState extends ConsumerState<OutletsPage> {
       description: l.outletsDescription,
       trailing: FilledButton.icon(
         key: const ValueKey('add-outlet'),
-        onPressed: overview.hasValue && !overview.hasError
+        onPressed: overview.hasValue && !overview.hasError && !rows.hasError
             ? () => editOutlet(context)
             : null,
         icon: const Icon(Icons.add),
