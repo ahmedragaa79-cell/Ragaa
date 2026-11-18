@@ -1,17 +1,19 @@
 name: Flutter checks
 on:
   push:
-    branches: [arena/868c7ad2-ragaa]
+    branches: [main, arena/868c7ad2-ragaa]
+  pull_request:
+    branches: [main]
 permissions:
   contents: read
+concurrency:
+  group: flutter-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  # One-time source scaffold, restricted to this initialization branch. The
-  # final review workflow is read-only once the native hosts are in Git.
-  initialize:
+  verify:
+    name: Analyze, test and build web
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -19,14 +21,22 @@ jobs:
           channel: stable
           flutter-version: '3.50.0'
           cache: true
-      - name: Materialize official runner sources and resolved dependency lock
-        if: hashFiles('.metadata') == ''
+      - run: flutter pub get --enforce-lockfile
+      - run: flutter gen-l10n
+      - name: Static analysis
         run: |
-          flutter create --no-pub --empty --platforms=android,ios,windows,macos,linux,web --org com.example --project-name strata "$RUNNER_TEMP/strata"
-          for source in .metadata android ios windows macos linux web; do cp -R "$RUNNER_TEMP/strata/$source" .; done
-          flutter pub get
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .metadata android ios windows macos linux web pubspec.lock
-          git commit -m 'chore: add the six official Flutter runners and dependency lock'
-          git push origin HEAD:arena/868c7ad2-ragaa
+          if ! flutter analyze --no-pub > "$RUNNER_TEMP/analyze.txt" 2>&1; then
+            cat "$RUNNER_TEMP/analyze.txt"
+            grep ' • ' "$RUNNER_TEMP/analyze.txt" | while IFS= read -r issue; do echo "::error::$issue"; done
+            exit 1
+          fi
+          cat "$RUNNER_TEMP/analyze.txt"
+      - run: flutter test --no-pub --reporter=github
+      - name: Check Dart formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+      - run: flutter build web --release --no-pub --no-web-resources-cdn
+      - uses: actions/upload-artifact@v4
+        with:
+          name: strata-web
+          path: build/web/
+          retention-days: 7

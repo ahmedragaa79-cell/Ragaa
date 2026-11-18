@@ -1,26 +1,21 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'app/localization/generated/app_localizations.dart';
+import 'app/app.dart';
+import 'features/settings/application/preferences_controller.dart';
+import 'features/settings/data/local_preference_store.dart';
 
-void main() => runApp(const StrataApp());
-
-class StrataApp extends StatelessWidget {
-  const StrataApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      onGenerateTitle: (context) => AppLocalizations.of(context).appName,
-      supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: [
-        AppLocalizations.delegate,
-        ...GlobalMaterialLocalizations.delegates,
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final store = LocalPreferenceStore();
+  final initial = await restorePreferences(store);
+  runApp(
+    ProviderScope(
+      overrides: [
+        preferenceStoreProvider.overrideWithValue(store),
+        initialPreferencesProvider.overrideWithValue(initial),
       ],
-      home: Builder(
-        builder: (context) => Scaffold(
-          body: Center(child: Text(AppLocalizations.of(context).dashboard)),
-        ),
-      ),
-    );
-  }
+      child: const StrataApp(),
+    ),
+  );
 }
