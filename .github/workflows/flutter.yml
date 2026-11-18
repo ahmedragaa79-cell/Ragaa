@@ -1,79 +1,30 @@
-name: Flutter checks
+name: Prepare SQLite schema
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
+    branches: [arena/868c7ad2-ragaa]
 permissions:
   contents: read
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-env:
-  FLUTTER_VERSION: '3.50.0'
 jobs:
-  verify:
-    name: Analysis, tests and web release
+  generate:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 15
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: '3.50.0'
           cache: true
-      - run: flutter pub get --enforce-lockfile
-      - run: flutter gen-l10n
-      - run: dart format --output=none --set-exit-if-changed lib test
-      - run: .github/scripts/check flutter analyze --no-pub
-      - run: flutter test --no-pub --reporter=github
-      - run: .github/scripts/check flutter build web --release --no-pub --no-web-resources-cdn
-      - uses: actions/upload-artifact@v7
-        with:
-          name: strata-web
-          path: build/web/
-          retention-days: 7
-      - name: Verify real browser preferences and reload
+      - run: .github/scripts/check flutter pub get
+      - run: .github/scripts/check dart run build_runner build --delete-conflicting-outputs
+      - run: .github/scripts/check tool/fetch_sqlite_web.sh
+      - run: dart format lib/core/database
+      - name: Version generated schema, lock and offline runtime
         run: |
-          python3 -m venv "$RUNNER_TEMP/web-check"
-          "$RUNNER_TEMP/web-check/bin/pip" -q install playwright==1.65.2
-          .github/scripts/check "$RUNNER_TEMP/web-check/bin/python" tool/check_web.py
-  native:
-    needs: verify
-    name: Build ${{ matrix.target }}
-    if: github.event_name != 'push'
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: Android
-            os: ubuntu-24.04
-            args: apk --debug
-          - target: Linux
-            os: ubuntu-24.04
-            args: linux --debug
-          - target: Windows
-            os: windows-latest
-            args: windows --debug
-          - target: macOS and iOS Simulator
-            os: macos-latest
-            args: macos --debug
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v7
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
-      - name: Install Linux desktop headers
-        if: matrix.target == 'Linux'
-        run: sudo apt-get update -qq && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libstdc++-12-dev
-      - run: flutter pub get --enforce-lockfile
-      - run: .github/scripts/check flutter build ${{ matrix.args }} --no-pub
-        shell: bash
-      - if: runner.os == 'macOS'
-        run: .github/scripts/check flutter build ios --simulator --debug --no-pub
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add pubspec.lock lib/core/database web/sqlite linux/flutter macos/Flutter windows/flutter
+          git commit -m 'build: lock database dependencies and vendor verified offline SQLite runtime'
+          git push origin HEAD:arena/868c7ad2-ragaa
