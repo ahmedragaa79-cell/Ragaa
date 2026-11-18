@@ -3,7 +3,6 @@ import 'package:material_ui/material_ui.dart';
 import '../../../app/localization/localization.dart';
 import '../../../app/theme/workspace_theme.dart';
 import '../../../core/widgets/surface.dart';
-import '../../../shared/domain/revenue.dart';
 import '../../../shared/domain/workspace_reader.dart';
 
 class SnapshotPanel extends StatelessWidget {
@@ -43,22 +42,22 @@ class SnapshotPanel extends StatelessWidget {
             _Metric(
               Icons.storefront_outlined,
               Accent.blue,
+              l.totalOutlets,
+              overview.totalOutlets,
+            ),
+            Divider(height: 16, color: context.colors.outlineVariant),
+            _Metric(
+              Icons.check_circle_outline,
+              Accent.teal,
               l.activeOutlets,
               overview.activeOutlets,
             ),
             Divider(height: 16, color: context.colors.outlineVariant),
             _Metric(
-              Icons.receipt_long_outlined,
-              Accent.teal,
-              l.revenueRecords,
-              overview.revenueRecords,
-            ),
-            Divider(height: 16, color: context.colors.outlineVariant),
-            _Metric(
-              Icons.timelapse_rounded,
+              Icons.pause_circle_outline,
               Accent.violet,
-              l.shiftsPerDay,
-              RevenueShift.values.length,
+              l.inactiveOutlets,
+              overview.inactiveOutlets,
             ),
           ],
         ),

@@ -43,10 +43,10 @@
   "secondShift": "الوردية الثانية",
   "shiftGuide": "لكل منفذ ورديتا تحصيل في كل يوم عمل.",
   "moduleEyebrow": "وحدة مساحة العمل",
-  "outletsDescription": "دليل موحّد لمنافذ تحصيل الإيرادات.",
+  "outletsDescription": "أدِر منافذ التحصيل وحالة كل منفذ على هذا الجهاز.",
   "outletDirectory": "دليل المنافذ",
   "noOutlets": "لا توجد منافذ بعد",
-  "emptyOutlets": "ستظهر منافذ التحصيل هنا عند إتاحة إعداد المنافذ.",
+  "emptyOutlets": "أضف أول منفذ تحصيل لبدء الدليل.",
   "plannedCapabilities": "الخصائص المخطط لها",
   "outletProfiles": "ملفات المنافذ",
   "outletProfilesHint": "إضافة تفاصيل منافذ التحصيل وتعديلها.",
@@ -80,5 +80,68 @@
   "preferenceNote": "تُحفظ التفضيلات على هذا الجهاز فقط.",
   "storageWarning": "تعذّر الوصول إلى التفضيلات المحلية. تظل تغييراتك سارية خلال هذه الجلسة.",
   "overviewUnavailable": "تعذّر تحميل ملخص مساحة العمل.",
-  "retry": "إعادة المحاولة"
+  "retry": "إعادة المحاولة",
+  "revenueUnavailable": "غير متاح بعد",
+  "revenueUnavailableHint": "ستظهر الإجماليات عند إتاحة تسجيل الإيرادات.",
+  "totalOutlets": "إجمالي المنافذ",
+  "inactiveOutlets": "المنافذ غير النشطة",
+  "active": "نشط",
+  "inactive": "غير نشط",
+  "filterAll": "كل الحالات",
+  "searchOutlets": "بحث بالاسم أو الرمز",
+  "clearSearch": "مسح البحث",
+  "addOutlet": "إضافة منفذ",
+  "editOutlet": "تعديل المنفذ",
+  "outletCode": "رمز المنفذ",
+  "outletName": "اسم المنفذ",
+  "optionalDescription": "الوصف (اختياري)",
+  "statusLabel": "الحالة",
+  "createdLabel": "تاريخ الإنشاء",
+  "actionsLabel": "الإجراءات",
+  "requiredCode": "أدخل رمز المنفذ.",
+  "requiredName": "أدخل اسم المنفذ.",
+  "duplicateCode": "هذا الرمز مستخدم لمنفذ آخر. اختر رمزًا مختلفًا.",
+  "saveOutlet": "حفظ المنفذ",
+  "savingOutlet": "جارٍ الحفظ…",
+  "cancelAction": "إلغاء",
+  "outletAdded": "تمت إضافة المنفذ.",
+  "outletEdited": "تم حفظ بيانات المنفذ.",
+  "activateOutlet": "تفعيل المنفذ",
+  "deactivateOutlet": "إيقاف المنفذ",
+  "confirmActivate": "هل تريد تفعيل «{name}»؟",
+  "confirmDeactivate": "هل تريد إيقاف «{name}»؟",
+  "activateHint": "سيكون هذا المنفذ متاحًا للقيود الجديدة عند إتاحة تسجيل الإيرادات.",
+  "deactivateHint": "سيُحتفظ بالمنفذ وسجله. لن يكون متاحًا لقيود الإيرادات الجديدة حتى تُعيد تفعيله.",
+  "outletActivated": "تم تفعيل المنفذ.",
+  "outletDeactivated": "تم إيقاف المنفذ مع الاحتفاظ بسجله.",
+  "noSearchResults": "لا توجد منافذ مطابقة",
+  "noSearchHint": "جرّب اسمًا أو رمزًا آخر أو غيّر تصفية الحالة.",
+  "noActive": "لا توجد منافذ نشطة",
+  "noActiveHint": "فعّل منفذًا موجودًا أو أضف منفذًا جديدًا.",
+  "noInactive": "لا توجد منافذ غير نشطة",
+  "noInactiveHint": "ستبقى المنافذ التي توقفها مدرجة هنا.",
+  "directoryUnavailable": "تعذّر تحميل دليل المنافذ.",
+  "storageReadHint": "تحقق من إمكانية الوصول إلى التخزين المحلي ثم أعد المحاولة.",
+  "corruptStorage": "تعذّر التحقق من سلامة قاعدة البيانات المحلية. احتفظ بالملف واطلب المساعدة لاستعادته، ولا تمسح بيانات التطبيق.",
+  "incompatibleStorage": "إصدار قاعدة البيانات أو تنسيقها غير مدعوم. احتفظ بالملف وتحقّق من إصدار التطبيق.",
+  "browserStorageUnavailable": "التخزين الموثوق غير متاح هنا. استخدم متصفحًا مدعومًا في نافذة عادية على عنوان الموقع الأصلي. لا تمسح بيانات الموقع.",
+  "outletWriteFailed": "تعذّر حفظ التغيير. تحقّق من التخزين المحلي ثم أعد المحاولة.",
+  "outletNotFound": "هذا المنفذ غير متاح. أعد فتح الدليل ثم حاول مجددًا.",
+  "loadingOutlets": "جارٍ تحميل المنافذ",
+  "directoryEyebrow": "عمليات المنافذ",
+  "directoryListLabel": "الدليل المحلي",
+  "@confirmActivate": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@confirmDeactivate": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -43,10 +43,10 @@
   "secondShift": "Second shift",
   "shiftGuide": "Each outlet has two collection shifts per business day.",
   "moduleEyebrow": "WORKSPACE MODULE",
-  "outletsDescription": "A central directory for your revenue collection outlets.",
+  "outletsDescription": "Manage collection outlets and their availability on this device.",
   "outletDirectory": "Outlet directory",
   "noOutlets": "No outlets yet",
-  "emptyOutlets": "Your collection outlets will appear here once outlet setup is available.",
+  "emptyOutlets": "Add your first collection outlet to start the directory.",
   "plannedCapabilities": "Planned capabilities",
   "outletProfiles": "Outlet profiles",
   "outletProfilesHint": "Create and edit collection outlet details.",
@@ -80,5 +80,68 @@
   "preferenceNote": "Preferences are stored on this device only.",
   "storageWarning": "Local preferences are unavailable. Changes still apply to this session.",
   "overviewUnavailable": "The workspace summary could not be loaded.",
-  "retry": "Try again"
+  "retry": "Try again",
+  "revenueUnavailable": "Not available yet",
+  "revenueUnavailableHint": "Totals will appear when revenue recording is available.",
+  "totalOutlets": "Total outlets",
+  "inactiveOutlets": "Inactive outlets",
+  "active": "Active",
+  "inactive": "Inactive",
+  "filterAll": "All statuses",
+  "searchOutlets": "Search by name or code",
+  "clearSearch": "Clear search",
+  "addOutlet": "Add outlet",
+  "editOutlet": "Edit outlet",
+  "outletCode": "Outlet code",
+  "outletName": "Outlet name",
+  "optionalDescription": "Description (optional)",
+  "statusLabel": "Status",
+  "createdLabel": "Created",
+  "actionsLabel": "Actions",
+  "requiredCode": "Enter an outlet code.",
+  "requiredName": "Enter an outlet name.",
+  "duplicateCode": "This code already belongs to an outlet. Choose another.",
+  "saveOutlet": "Save outlet",
+  "savingOutlet": "Saving…",
+  "cancelAction": "Cancel",
+  "outletAdded": "Outlet added.",
+  "outletEdited": "Outlet details saved.",
+  "activateOutlet": "Activate outlet",
+  "deactivateOutlet": "Deactivate outlet",
+  "confirmActivate": "Activate “{name}”?",
+  "confirmDeactivate": "Deactivate “{name}”?",
+  "activateHint": "This outlet will be eligible for new revenue entries when recording is available.",
+  "deactivateHint": "The outlet and its history will be kept. It won’t be available for new revenue entries until you reactivate it.",
+  "outletActivated": "Outlet activated.",
+  "outletDeactivated": "Outlet deactivated. History kept.",
+  "noSearchResults": "No matching outlets",
+  "noSearchHint": "Try another name or code, or change the status filter.",
+  "noActive": "No active outlets",
+  "noActiveHint": "Activate an existing outlet or add a new one.",
+  "noInactive": "No inactive outlets",
+  "noInactiveHint": "Outlets you deactivate will remain listed here.",
+  "directoryUnavailable": "The outlet directory could not be loaded.",
+  "storageReadHint": "Check access to local storage, then try again.",
+  "corruptStorage": "The local database could not be verified. Keep the file and seek recovery help; do not clear app data.",
+  "incompatibleStorage": "This database version or format is not supported. Keep the file and check your app version.",
+  "browserStorageUnavailable": "Reliable storage is unavailable here. Use a supported browser in a regular window at the original site address. Do not clear site data.",
+  "outletWriteFailed": "The change could not be saved. Check local storage and try again.",
+  "outletNotFound": "This outlet is no longer available. Reopen the directory and try again.",
+  "loadingOutlets": "Loading outlets",
+  "directoryEyebrow": "OUTLET OPERATIONS",
+  "directoryListLabel": "LOCAL DIRECTORY",
+  "@confirmActivate": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@confirmDeactivate": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

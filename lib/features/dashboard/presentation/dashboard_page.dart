@@ -5,7 +5,9 @@ import '../../../app/localization/localization.dart';
 import '../../../app/theme/workspace_theme.dart';
 import '../../../core/widgets/surface.dart';
 import '../../../shared/presentation/page_layout.dart';
-import '../application/overview_provider.dart';
+import '../../../shared/presentation/storage_error_panel.dart';
+import '../../../shared/data/workspace_providers.dart';
+import '../../../shared/application/overview_provider.dart';
 import 'module_cards.dart';
 import 'revenue_summary.dart';
 import 'snapshot_panel.dart';
@@ -51,7 +53,7 @@ class DashboardPage extends ConsumerWidget {
                 flex: const [8, 5],
                 minWidth: 680,
                 children: [
-                  RevenueSummary(total: o.totalRevenue),
+                  const RevenueSummary(),
                   SnapshotPanel(overview: o),
                 ],
               ),
@@ -59,19 +61,13 @@ class DashboardPage extends ConsumerWidget {
                 height: 218,
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (_, _) => SurfacePanel(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      Text(l.overviewUnavailable),
-                      TextButton(
-                        onPressed: () => ref.invalidate(overviewProvider),
-                        child: Text(l.retry),
-                      ),
-                    ],
-                  ),
-                ),
+              error: (error, _) => StorageErrorPanel(
+                heading: l.overviewUnavailable,
+                error: error,
+                onRetry: () {
+                  ref.invalidate(outletRepositoryProvider);
+                  ref.invalidate(overviewProvider);
+                },
               ),
             ),
         const SizedBox(height: 27),

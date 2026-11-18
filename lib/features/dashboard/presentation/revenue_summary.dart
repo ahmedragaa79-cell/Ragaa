@@ -2,11 +2,9 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../app/localization/localization.dart';
 import '../../../core/widgets/surface.dart';
-import '../../../shared/domain/revenue.dart';
 
 class RevenueSummary extends StatelessWidget {
-  const RevenueSummary({super.key, required this.total});
-  final LedgerAmount total;
+  const RevenueSummary({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -82,12 +80,12 @@ class RevenueSummary extends StatelessWidget {
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                            context.formats.amount(total),
+                            l.revenueUnavailable,
                             style: const TextStyle(
-                              fontSize: 53,
+                              fontSize: 34,
                               color: Colors.white,
                               height: 1.2,
-                              letterSpacing: -2.5,
+                              letterSpacing: -.5,
                               fontWeight: FontWeight.w700,
                               fontFeatures: [FontFeature.tabularFigures()],
                             ),
@@ -96,13 +94,13 @@ class RevenueSummary extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 21),
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 4,
-                      children: [
-                        _Scope(Icons.storefront_outlined, l.allOutlets),
-                        _Scope(Icons.schedule_rounded, l.allTime),
-                      ],
+                    Text(
+                      l.revenueUnavailableHint,
+                      style: const TextStyle(
+                        color: Color(0xFFCFDCF4),
+                        fontSize: 12,
+                        height: 1.5,
+                      ),
                     ),
                   ],
                 ),
@@ -113,28 +111,6 @@ class RevenueSummary extends StatelessWidget {
       ),
     );
   }
-}
-
-class _Scope extends StatelessWidget {
-  const _Scope(this.icon, this.label);
-  final IconData icon;
-  final String label;
-  @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Icon(icon, size: 14, color: const Color(0xFFB4C5E8)),
-      const SizedBox(width: 5),
-      Text(
-        label,
-        style: const TextStyle(
-          color: Color(0xFFCFDCF4),
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    ],
-  );
 }
 
 class _Blueprint extends CustomPainter {
