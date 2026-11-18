@@ -1,7 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:strata/shared/domain/outlet.dart';
-import 'package:strata/shared/domain/revenue.dart';
 import 'package:strata/shared/domain/workspace_reader.dart';
 
 import 'support/app_harness.dart';
@@ -9,18 +7,13 @@ import 'support/app_harness.dart';
 class _InterruptedReader implements WorkspaceReader {
   bool first = true;
   @override
-  Future<WorkspaceOverview> overview() async {
+  Stream<WorkspaceOverview> watchOverview() async* {
     if (first) {
       first = false;
       throw StateError('Unavailable');
     }
-    return const WorkspaceOverview.empty();
+    yield const WorkspaceOverview(totalOutlets: 0, activeOutlets: 0);
   }
-
-  @override
-  Future<List<Outlet>> outlets() async => const [];
-  @override
-  Future<List<RevenueRecord>> revenue(RevenueQuery query) async => const [];
 }
 
 void main() {
@@ -36,6 +29,6 @@ void main() {
     expect(find.text('0.00'), findsNothing);
     await tester.tap(find.text('Try again'));
     await tester.pumpAndSettle();
-    expect(find.text('0.00'), findsOneWidget);
+    expect(find.text('Not available yet'), findsOneWidget);
   });
 }

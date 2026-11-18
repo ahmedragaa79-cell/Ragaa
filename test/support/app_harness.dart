@@ -4,7 +4,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:strata/app/app.dart';
 import 'package:strata/features/settings/application/preferences_controller.dart';
 import 'package:strata/features/settings/application/workspace_preferences.dart';
-import 'package:strata/shared/data/empty_workspace_reader.dart';
+import 'package:strata/shared/data/workspace_providers.dart';
+import 'package:strata/core/database/strata_database.dart';
+import 'test_database.dart';
 import 'package:strata/shared/domain/workspace_reader.dart';
 
 class MemoryPreferenceStore implements PreferenceStore {
@@ -35,6 +37,7 @@ Future<void> launch(
   WidgetTester tester,
   MemoryPreferenceStore store, {
   WorkspaceReader? reader,
+  StrataDatabase Function() database = memoryDatabase,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -43,7 +46,9 @@ Future<void> launch(
         initialPreferencesProvider.overrideWithValue(
           await restorePreferences(store),
         ),
-        if (reader != null) workspaceReaderProvider.overrideWithValue(reader),
+        databaseFactoryProvider.overrideWithValue(database),
+        if (reader != null)
+          workspaceReaderProvider.overrideWithValue(Future.value(reader)),
       ],
       child: const StrataApp(),
     ),

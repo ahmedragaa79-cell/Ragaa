@@ -3,21 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:strata/features/settings/application/preferences_controller.dart';
 import 'package:strata/features/settings/application/workspace_preferences.dart';
-import 'package:strata/shared/data/empty_workspace_reader.dart';
 import 'package:strata/shared/domain/revenue.dart';
 
 import 'support/app_harness.dart';
 
 void main() {
-  test('the production adapter contains no outlets or revenue rows', () async {
-    const store = EmptyWorkspaceReader();
-    expect(await store.outlets(), isEmpty);
-    expect(await store.revenue(RevenueQuery()), isEmpty);
-    final overview = await store.overview();
-    expect(overview.revenueRecords, 0);
-    expect(overview.activeOutlets, 0);
-    expect(overview.totalRevenue.units, 0);
-  });
   test(
     'query bounds are inclusive calendar days; selected IDs are immutable',
     () {

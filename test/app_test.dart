@@ -12,7 +12,7 @@ void main() {
       await launch(tester, MemoryPreferenceStore());
       final total = find.text('Total revenue');
       expect(total, findsOneWidget);
-      expect(find.text('0.00'), findsOneWidget);
+      expect(find.text('Not available yet'), findsOneWidget);
       expect(Directionality.of(tester.element(total)), TextDirection.ltr);
       expect(
         tester.getCenter(find.byType(WorkspaceSidebar)).dx,
@@ -52,8 +52,8 @@ void main() {
       await launch(tester, store);
       final total = find.text('إجمالي الإيرادات');
       expect(total, findsOneWidget);
-      expect(find.text('٠٫٠٠'), findsOneWidget);
-      expect(find.text('٢'), findsOneWidget);
+      expect(find.text('غير متاح بعد'), findsOneWidget);
+      expect(find.text('٠'), findsNWidgets(3));
       expect(Theme.of(tester.element(total)).brightness, Brightness.dark);
       await tapKey(tester, 'toolbar-language');
       await tester.tap(find.text('English'));
